@@ -1,6 +1,6 @@
 const functions = require('firebase-functions');
 var admin = require("firebase-admin");
-var serviceAccount = require("path/to/secret_key.json");
+var serviceAccount = require("./path/to/key.json");
 
 
 admin.initializeApp({
@@ -22,19 +22,22 @@ var options = {
 };
 
 
+
+
 const db = admin.database();
 var ref, email = "NO_MAIL";
 
-
-exports.new_allotment = functions.database.ref('/allotments/{allotment_id}')
+exports.new_allotmentr = functions.database.ref('/allotments/{allotment_id}')
     .onCreate((snapshot, context) => {
       
         // Grab the newly added document
         const original = snapshot.val();
+        console.log(original);
 
         // Check for files in the added document and update their relative paths
         if (original.files)
             original.files.forEach(file => {
+                console.log(file);
                 ref = db.ref("/files/" + file + "/CR");
                 ref.set({status: "Given"});
             });
@@ -48,10 +51,15 @@ exports.new_allotment = functions.database.ref('/allotments/{allotment_id}')
 
                 // append it to the array of recepients 
                 options.body.emailTo.push(email);
-
-                request(options, function (error, response, body) {
-                    if (error) throw new Error(error);
-                });
+                
+                try {
+                    request(options, function (error, response, body) {
+                        // log the error instead of throwing it
+                        if (error) console.log(error);
+                    });                     
+                } catch(err) {
+                    console.log(err);
+                }
             }
 
 
